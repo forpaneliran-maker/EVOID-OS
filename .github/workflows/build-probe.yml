@@ -1,0 +1,41 @@
+
+name: Build OneOS Probe APK
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download source
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android SDK 37
+        run: sdkmanager "platforms;android-37"
+
+      - name: Build Probe APK
+        working-directory: app-android
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon --max-workers=2 assembleProbeDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: OneOS-Probe-APK
+          path: app-android/app/build/outputs/apk/probe/debug/*.apk
+          if-no-files-found: error
